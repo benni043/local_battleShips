@@ -11,7 +11,14 @@ app.use(express.json()); // damit JSON gelesen werden kann
 // Beispiel-Route für POST
 app.post('/daten', (req, res) => {
     console.log("Empfangene Daten:", req.body);
-    res.send({ message: "Daten erhalten", empfangen: req.body });
+
+    let x = req.body.grid
+
+    x.forEach(row => {
+        console.log(row);
+    })
+
+    res.send({message: "Daten erhalten", empfangen: req.body});
 });
 
 // Test-Route für GET
