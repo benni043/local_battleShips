@@ -310,54 +310,6 @@
         document.getElementById('randomCoordsOutput').textContent = `Koordinaten: ${coords.join(', ')}`;
     }
 
-
-    function createGrid(containerId) {
-        const wrapper = document.getElementById(containerId);
-        wrapper.innerHTML = '';
-
-        wrapper.appendChild(document.createElement('div'));
-        for (let c = 0; c < 10; c++) {
-            const colLabel = document.createElement('div');
-            colLabel.className = 'label';
-            colLabel.textContent = String.fromCharCode(65 + c);
-            wrapper.appendChild(colLabel);
-        }
-
-        for (let r = 1; r <= 10; r++) {
-            const rowLabel = document.createElement('div');
-            rowLabel.className = 'label';
-            rowLabel.textContent = r;
-            wrapper.appendChild(rowLabel);
-
-            for (let c = 0; c < 10; c++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-
-                const blackRect = document.createElement('div');
-                blackRect.classList.add('black-rect');
-                blackRect.style.display = 'none';
-                cell.appendChild(blackRect);
-
-                const xMark = document.createElement('div');
-                xMark.classList.add('x-mark');
-                xMark.textContent = 'X';
-                xMark.style.display = 'none';
-                cell.appendChild(xMark);
-
-                cell.addEventListener('click', () => {
-                    blackRect.style.display = blackRect.style.display === 'none' ? 'block' : 'none';
-                });
-
-                cell.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    xMark.style.display = xMark.style.display === 'none' ? 'flex' : 'none';
-                });
-
-                wrapper.appendChild(cell);
-            }
-        }
-    }
-
     function startGame() {
         const player1 = document.getElementById('player1Input').value.trim() || "Spieler 1";
         const player2 = document.getElementById('player2Input').value.trim() || "Spieler 2";
@@ -400,6 +352,92 @@
             toggleButtons.forEach(button => button.textContent = 'Dark Mode');
         }
     }
+
+    let grid1State = [];
+
+    function createGrid(containerId) {
+        const wrapper = document.getElementById(containerId);
+        wrapper.innerHTML = '';
+
+        wrapper.appendChild(document.createElement('div'));
+        for (let c = 0; c < 10; c++) {
+            const colLabel = document.createElement('div');
+            colLabel.className = 'label';
+            colLabel.textContent = String.fromCharCode(65 + c);
+            wrapper.appendChild(colLabel);
+        }
+
+        if (containerId === 'grid1') {
+            grid1State = Array.from({ length: 10 }, () => Array(10).fill(' '));
+        }
+
+        for (let r = 0; r < 10; r++) {
+            const rowLabel = document.createElement('div');
+            rowLabel.className = 'label';
+            rowLabel.textContent = r + 1;
+            wrapper.appendChild(rowLabel);
+
+            for (let c = 0; c < 10; c++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+
+                const blackRect = document.createElement('div');
+                blackRect.classList.add('black-rect');
+                blackRect.style.display = 'none';
+                cell.appendChild(blackRect);
+
+                const xMark = document.createElement('div');
+                xMark.classList.add('x-mark');
+                xMark.textContent = 'X';
+                xMark.style.display = 'none';
+                cell.appendChild(xMark);
+
+                cell.addEventListener('click', () => {
+                    const active = blackRect.style.display === 'none';
+                    blackRect.style.display = active ? 'block' : 'none';
+
+                    if (containerId === 'grid1') {
+                        grid1State[r][c] = active ? 'S' : 'W';
+                        send(grid1State);
+                    }
+                });
+
+                cell.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    const active = xMark.style.display === 'none';
+                    xMark.style.display = active ? 'flex' : 'none';
+
+                    if (containerId === 'grid1') {
+                        grid1State[r][c] = active ? 'X' : ' ';
+                    }
+                });
+
+                wrapper.appendChild(cell);
+            }
+        }
+    }
+
+    function send(array) {
+        array.forEach(cell => {
+            console.log(cell)
+        })
+
+        fetch("http://49.13.153.183:3000/daten", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ grid: array })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error("Netzwerkfehler");
+                return response.text();
+            })
+            .then(data => console.log("Erfolg:", data))
+            .catch(error => console.error("Fehler:", error));
+    }
+
+
 </script>
 </body>
 </html>
