@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
   # 5. Exponiere Port 3006
-EXPOSE 3006
+#EXPOSE 3006
 
   # 6. Startbefehl
 CMD ["node", "server.js"]
